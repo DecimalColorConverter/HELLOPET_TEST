@@ -8,7 +8,7 @@ const questions = [
         answers: [
             {
                 text: "무슨 일 있어? 문제의 원인을 묻고 조언한다.",
-                weights: { T: 1 }
+                weights: { T: 1, E: 1 }
             },
             {
                 text: "다 잘 될 거야! 응원의 댓글로 기운을 북돋는다.",
@@ -34,7 +34,7 @@ const questions = [
             },
             {
                 text: "\"무슨 일 있어?\" 상황을 직접 물어본다.",
-                weights: { E: 1, T: 1 }
+                weights: { E: 1 }
             },
             {
                 text: "'혹시 나 때문인가?'\n심장이 덜컥하며 내 지난 행적을 복기해본다.",
@@ -74,11 +74,11 @@ const questions = [
         answers: [
             {
                 text: "비슷한 관심사를 가졌는지가 중요해.",
-                weights: { S: 1, T: 1 }
+                weights: { N: 1, T: 1 }
             },
             {
                 text: "그런 게 필요한가? 그냥 느낌 좋으면 됨.",
-                weights: { N: 1, P: 1 }
+                weights: { S: 2, P: 1 }
             },
             {
                 text: "말투와 성격이 나랑 잘 맞아야 해.",
@@ -144,7 +144,7 @@ const questions = [
             },
             {
                 text: "으... 별로. 친구도 아닌데 왜 다는 거야?",
-                weights: { I: 1, T: 1 }
+                weights: { I: 1 }
             },
             {
                 text: "음. 달았군.",
@@ -170,11 +170,11 @@ const questions = [
             },
             {
                 text: "왜 했지? 이유가 궁금하다. 혹시 아는 사람 있어?",
-                weights: { N: 1, T: 1 }
+                weights: { N: 1, E: 1 }
             },
             {
                 text: "사람은 사람으로 잊는다. 새로운 헬친을 빠르게 구해본다.",
-                weights: { E: 1, P: 1 }
+                weights: { E: 2, P: 1 }
             }
         ]
     },
