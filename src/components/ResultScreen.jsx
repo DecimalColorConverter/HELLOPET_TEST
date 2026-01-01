@@ -33,7 +33,8 @@ function ResultScreen({
                     const { error } = await supabase
                         .from('test_results')
                         .insert([
-                            { animal: result.animal, timestamp: new Date().toISOString() }
+                            // timestamp를 created_at으로 변경
+{ animal: result.animal, created_at: new Date().toISOString() }
                         ]);
 
                     if (error) {
