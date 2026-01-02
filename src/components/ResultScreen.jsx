@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../utils/supabase';
 
 // Paw Print SVG Component
@@ -14,6 +14,90 @@ const YellowBullet = () => (
     <span className="inline-block w-2 h-2 rounded-full bg-yellow-400 mt-2 flex-shrink-0" />
 );
 
+// Info Modal Component
+const InfoModal = ({ isOpen, onClose, isDarkMode }) => (
+    <AnimatePresence>
+        {isOpen && (
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                onClick={onClose}
+            >
+                <motion.div
+                    initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                    className={`relative w-full max-w-sm p-6 rounded-3xl shadow-2xl overflow-hidden ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-900'}`}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {/* Close Button */}
+                    <button
+                        onClick={onClose}
+                        className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-gray-700 text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                    </button>
+
+                    {/* Header */}
+                    <h2 className="text-xl font-bold mb-6 text-center">더보기</h2>
+
+                    {/* Content */}
+                    <div className="space-y-6">
+                        {/* About */}
+                        <div className="space-y-2">
+                            <h3 className={`text-sm font-bold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>#나는어떤펫일까</h3>
+                            <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                헬로펫의 귀여운 동물 친구들을 통해 나의 성격 알아보기
+                                <span className="block mt-1">Thank you for playing.</span>
+                            </p>
+                        </div>
+
+                        {/* Credits */}
+                        <div className="space-y-2">
+                            <h3 className={`text-sm font-bold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>크레딧</h3>
+                            <ul className={`text-sm space-y-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                <li>• Made by 여뉴</li>
+                                <li>• Text design by 은 </li>
+                            </ul>
+                        </div>
+
+                        {/* Links */}
+                        <div className="space-y-3 pt-2">
+                            <a
+                                href="https://www.notion.so/tmi-2d7f7f47767980db8654db7cc7207561"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'}`}
+                            >
+                                <span className="text-xl">📝</span>
+                                <div>
+                                    <div className="font-bold text-sm">제작자 노션 바로가기</div>
+                                    <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>여뉴의 편지와 개발 비하인드를 만나보세요</div>
+                                </div>
+                            </a>
+
+                            <a
+                                href="https://open.kakao.com/me/Yeonyu_"
+                                className={`flex items-center gap-3 p-3 rounded-xl transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'}`}
+                            >
+                                <span className="text-xl">📧</span>
+                                <div>
+                                    <div className="font-bold text-sm">문의하기</div>
+                                    <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>언제든 편하게 연락 부탁드립니다</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </motion.div>
+            </motion.div>
+        )}
+    </AnimatePresence>
+);
+
 function ResultScreen({
     result,
     mbtiType,
@@ -22,6 +106,7 @@ function ResultScreen({
     onToggleTheme
 }) {
     const logAttempted = useRef(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         if (logAttempted.current) return;
@@ -34,7 +119,7 @@ function ResultScreen({
                         .from('test_results')
                         .insert([
                             // timestamp를 created_at으로 변경
-{ animal: result.animal, created_at: new Date().toISOString() }
+                            { animal: result.animal, created_at: new Date().toISOString() }
                         ]);
 
                     if (error) {
@@ -98,239 +183,264 @@ function ResultScreen({
     };
 
     return (
-        <motion.div
-            className="min-h-screen flex flex-col items-center px-8 py-12 md:px-10 z-0 relative overflow-y-auto overflow-x-hidden scrollbar-hide"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-        >
+        <>
             <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="visible"
-                className="flex flex-col items-center w-full max-w-md mt-6 will-change-transform"
+                className="min-h-screen flex flex-col items-center px-8 py-12 md:px-10 z-0 relative overflow-y-auto overflow-x-hidden scrollbar-hide"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4 }}
             >
-                {/* A. Header Section */}
-                {/* Animal Image - Centered */}
                 <motion.div
-                    variants={imageVariants}
-                    className="w-full aspect-[1000/523] mb-6 flex items-center justify-center relative"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    className="flex flex-col items-center w-full max-w-md mt-6 will-change-transform"
                 >
-                    {result.img ? (
-                        <div className="w-full h-full rounded-3xl overflow-hidden">
-                            <img
-                                src={result.img}
-                                alt={result.animal}
-                                className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                            />
-                        </div>
-                    ) : (
-                        <div className="text-center p-4">
-                            <motion.span
-                                className="text-8xl block mb-2"
-                                animate={{ rotate: [0, -5, 5, -5, 0] }}
-                                transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                    {/* A. Header Section */}
+                    {/* Animal Image - Centered */}
+                    <motion.div
+                        variants={imageVariants}
+                        className="w-full aspect-[1000/523] mb-6 flex items-center justify-center relative"
+                    >
+                        {result.img ? (
+                            <div className="w-full h-full rounded-3xl overflow-hidden">
+                                <img
+                                    src={result.img}
+                                    alt={result.animal}
+                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                                />
+                            </div>
+                        ) : (
+                            <div className="text-center p-4">
+                                <motion.span
+                                    className="text-8xl block mb-2"
+                                    animate={{ rotate: [0, -5, 5, -5, 0] }}
+                                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                                >
+                                    🐾
+                                </motion.span>
+                                <p className="text-gray-800 font-bold opacity-50 text-sm">이미지 준비중</p>
+                            </div>
+                        )}
+                    </motion.div>
+
+                    {/* Animal Name */}
+                    <motion.h1
+                        variants={itemVariants}
+                        className={`text-2xl font-bold mb-2 text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
+                    >
+                        {result.animal}
+                    </motion.h1>
+
+                    {/* Hashtags (Upper Divider Context: mb-6) */}
+                    <motion.p
+                        variants={itemVariants}
+                        className={`text-sm mb-6 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
+                    >
+                        {result.hashtags.join(' ')}
+                    </motion.p>
+
+                    {/* Upper Divider (mb-8) */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="w-8 h-1.5 rounded-full mx-auto mb-8 transition-colors duration-300"
+                        style={{ backgroundColor: isDarkMode ? '#374151' : '#fff3d4' }}
+                    />
+
+                    {/* B. Bullet Point Sections */}
+                    {/* Section 1: Traits */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="w-full mb-8"
+                    >
+                        <h2
+                            className={`text-xl font-bold mb-4 text-left ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
+                            style={{ fontFamily: 'Pretendard, sans-serif' }}
+                        >
+                            당신은 어떤 펫이냐면...
+                        </h2>
+                        <ul className="space-y-3">
+                            {result.description.map((item, index) => (
+                                <li key={index} className="flex items-start gap-3">
+                                    <YellowBullet />
+                                    <span className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        {item}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </motion.div>
+
+                    {/* Section 2: Likes */}
+                    {result.likes && (
+                        <motion.div
+                            variants={itemVariants}
+                            className="w-full mb-8"
+                        >
+                            <h2
+                                className={`text-xl font-bold mb-4 text-left ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
+                                style={{ fontFamily: 'Pretendard, sans-serif' }}
                             >
-                                🐾
-                            </motion.span>
-                            <p className="text-gray-800 font-bold opacity-50 text-sm">이미지 준비중</p>
-                        </div>
+                                이런 게 좋아요!
+                            </h2>
+                            <ul className="space-y-3">
+                                {result.likes.list.map((item, index) => (
+                                    <li key={index} className="flex items-start gap-3">
+                                        <YellowBullet />
+                                        <span className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            {item}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </motion.div>
                     )}
+
+                    {/* Section 3: Dislikes */}
+                    {result.dislikes && (
+                        <motion.div
+                            variants={itemVariants}
+                            className="w-full mb-8"
+                        >
+                            <h2
+                                className={`text-xl font-bold mb-4 text-left ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
+                                style={{ fontFamily: 'Pretendard, sans-serif' }}
+                            >
+                                이런 게 싫어요!
+                            </h2>
+                            <ul className="space-y-3">
+                                {result.dislikes.list.map((item, index) => (
+                                    <li key={index} className="flex items-start gap-3">
+                                        <YellowBullet />
+                                        <span className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            {item}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </motion.div>
+                    )}
+
+                    {/* C. Match Section (Footer) */}
+                    {result.match && (
+                        <motion.div
+                            variants={itemVariants}
+                            className="w-full"
+                        >
+                            {/* Best Match */}
+                            <div className="mb-6">
+                                <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                    <span>❤️</span>
+                                    <span>환상의 짝꿍: {result.match.best.name}</span>
+                                </h3>
+                                <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                    {result.match.best.desc}
+                                </p>
+                            </div>
+
+                            {/* Worst Match (Lower Divider Context: mb-6) */}
+                            <div className="mb-6">
+                                <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                                    <span>💔</span>
+                                    <span>환장의 짝꿍: {result.match.worst.name}</span>
+                                </h3>
+                                <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                    {result.match.worst.desc}
+                                </p>
+                            </div>
+
+                            {/* Lower Divider (mb-8) - Matches Upper Divider perfectly */}
+                            <div
+                                className="w-8 h-1.5 rounded-full mx-auto mb-8 transition-colors duration-300"
+                                style={{ backgroundColor: isDarkMode ? '#374151' : '#fff3d4' }}
+                            />
+                        </motion.div>
+                    )}
+
+                    {/* Action Buttons - Fully Rounded */}
+                    <motion.div
+                        variants={itemVariants}
+                        className="flex flex-col w-full gap-4 mb-8"
+                    >
+                        <motion.button
+                            onClick={handleShare}
+                            className={`w-full py-4 rounded-full font-bold text-lg shadow-mobile btn-press flex items-center justify-center gap-2 transition-colors ${isDarkMode
+                                ? 'bg-gray-700 text-white hover:bg-gray-600'
+                                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                }`}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                            </svg>
+                            공유하기
+                        </motion.button>
+
+                        <motion.button
+                            onClick={onRestart}
+                            className="w-full py-4 rounded-full font-bold text-lg shadow-lg btn-press flex items-center justify-center gap-2 transition-colors"
+                            style={{
+                                backgroundColor: '#FFCE56',
+                                color: '#1F2937'
+                            }}
+                            whileHover={{ backgroundColor: '#FFD970' }}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <PawIcon className="w-6 h-6" />
+                            다시하기
+                        </motion.button>
+
+                        {/* More Button */}
+                        <motion.button
+                            onClick={() => setIsModalOpen(true)}
+                            className={`w-full py-3 rounded-full font-medium text-sm flex items-center justify-center gap-1 transition-colors ${isDarkMode
+                                ? 'text-gray-400 hover:text-gray-300'
+                                : 'text-gray-500 hover:text-gray-600'
+                                }`}
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <span>더보기</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </motion.button>
+                    </motion.div>
                 </motion.div>
 
-                {/* Animal Name */}
-                <motion.h1
-                    variants={itemVariants}
-                    className={`text-2xl font-bold mb-2 text-center ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
+                {/* Footer Signature */}
+                <p className={`text-xs mt-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                    Made by 여뉴
+                </p>
+
+                {/* Theme Toggle - Bottom Right, Smaller, No Background */}
+                <motion.button
+                    onClick={onToggleTheme}
+                    className="fixed bottom-4 right-4 p-2 transition-colors duration-300 z-20"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
                 >
-                    {result.animal}
-                </motion.h1>
-
-                {/* Hashtags (Upper Divider Context: mb-6) */}
-                <motion.p
-                    variants={itemVariants}
-                    className={`text-sm mb-6 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}
-                >
-                    {result.hashtags.join(' ')}
-                </motion.p>
-
-                {/* Upper Divider (mb-8) */}
-                <motion.div
-                    variants={itemVariants}
-                    className="w-8 h-1.5 rounded-full mx-auto mb-8 transition-colors duration-300"
-                    style={{ backgroundColor: isDarkMode ? '#374151' : '#fff3d4' }}
-                />
-
-                {/* B. Bullet Point Sections */}
-                {/* Section 1: Traits */}
-                <motion.div
-                    variants={itemVariants}
-                    className="w-full mb-8"
-                >
-                    <h2
-                        className={`text-xl font-bold mb-4 text-left ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
-                        style={{ fontFamily: 'Pretendard, sans-serif' }}
-                    >
-                        당신은 어떤 펫이냐면...
-                    </h2>
-                    <ul className="space-y-3">
-                        {result.description.map((item, index) => (
-                            <li key={index} className="flex items-start gap-3">
-                                <YellowBullet />
-                                <span className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                    {item}
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
-                </motion.div>
-
-                {/* Section 2: Likes */}
-                {result.likes && (
-                    <motion.div
-                        variants={itemVariants}
-                        className="w-full mb-8"
-                    >
-                        <h2
-                            className={`text-xl font-bold mb-4 text-left ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
-                            style={{ fontFamily: 'Pretendard, sans-serif' }}
-                        >
-                            이런 게 좋아요!
-                        </h2>
-                        <ul className="space-y-3">
-                            {result.likes.list.map((item, index) => (
-                                <li key={index} className="flex items-start gap-3">
-                                    <YellowBullet />
-                                    <span className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                        {item}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    </motion.div>
-                )}
-
-                {/* Section 3: Dislikes */}
-                {result.dislikes && (
-                    <motion.div
-                        variants={itemVariants}
-                        className="w-full mb-8"
-                    >
-                        <h2
-                            className={`text-xl font-bold mb-4 text-left ${isDarkMode ? 'text-white' : 'text-gray-900'}`}
-                            style={{ fontFamily: 'Pretendard, sans-serif' }}
-                        >
-                            이런 게 싫어요!
-                        </h2>
-                        <ul className="space-y-3">
-                            {result.dislikes.list.map((item, index) => (
-                                <li key={index} className="flex items-start gap-3">
-                                    <YellowBullet />
-                                    <span className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                        {item}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    </motion.div>
-                )}
-
-                {/* C. Match Section (Footer) */}
-                {result.match && (
-                    <motion.div
-                        variants={itemVariants}
-                        className="w-full"
-                    >
-                        {/* Best Match */}
-                        <div className="mb-6">
-                            <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                <span>❤️</span>
-                                <span>환상의 짝꿍: {result.match.best.name}</span>
-                            </h3>
-                            <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                {result.match.best.desc}
-                            </p>
-                        </div>
-
-                        {/* Worst Match (Lower Divider Context: mb-6) */}
-                        <div className="mb-6">
-                            <h3 className={`font-bold mb-2 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                                <span>💔</span>
-                                <span>환장의 짝꿍: {result.match.worst.name}</span>
-                            </h3>
-                            <p className={`text-sm leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                {result.match.worst.desc}
-                            </p>
-                        </div>
-
-                        {/* Lower Divider (mb-8) - Matches Upper Divider perfectly */}
-                        <div
-                            className="w-8 h-1.5 rounded-full mx-auto mb-8 transition-colors duration-300"
-                            style={{ backgroundColor: isDarkMode ? '#374151' : '#fff3d4' }}
-                        />
-                    </motion.div>
-                )}
-
-                {/* Action Buttons - Fully Rounded */}
-                <motion.div
-                    variants={itemVariants}
-                    className="flex flex-col w-full gap-4 mb-8"
-                >
-                    <motion.button
-                        onClick={handleShare}
-                        className={`w-full py-4 rounded-full font-bold text-lg shadow-mobile btn-press flex items-center justify-center gap-2 transition-colors ${isDarkMode
-                            ? 'bg-gray-700 text-white hover:bg-gray-600'
-                            : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                            }`}
-                        whileTap={{ scale: 0.98 }}
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    {isDarkMode ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
-                        공유하기
-                    </motion.button>
-
-                    <motion.button
-                        onClick={onRestart}
-                        className="w-full py-4 rounded-full font-bold text-lg shadow-lg btn-press flex items-center justify-center gap-2 transition-colors"
-                        style={{
-                            backgroundColor: '#FFCE56',
-                            color: '#1F2937'
-                        }}
-                        whileHover={{ backgroundColor: '#FFD970' }}
-                        whileTap={{ scale: 0.98 }}
-                    >
-                        <PawIcon className="w-6 h-6" />
-                        다시하기
-                    </motion.button>
-                </motion.div>
+                    ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    )}
+                </motion.button>
             </motion.div>
 
-            {/* Footer Signature */}
-            <p className={`text-xs mt-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                Made by 여뉴
-            </p>
-
-            {/* Theme Toggle - Bottom Right, Smaller, No Background */}
-            <motion.button
-                onClick={onToggleTheme}
-                className="fixed bottom-4 right-4 p-2 transition-colors duration-300 z-20"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-            >
-                {isDarkMode ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                    </svg>
-                )}
-            </motion.button>
-        </motion.div>
+            {/* Info Modal */}
+            <InfoModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                isDarkMode={isDarkMode}
+            />
+        </>
     );
 }
 
 export default ResultScreen;
+
